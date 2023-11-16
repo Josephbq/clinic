@@ -1,0 +1,6 @@
+genero ,edad ,fuma ,antecedentes_familiares ,tos_cronica ,dificultad_respirar ,sibilancias ,habitos ,exposicion_sustancias_irritantes ,ocupacion   ,otros_diagnosticos
+M      ,  35 ,Si   ,Si                      ,Si          ,No                  ,No          ,Fuma    ,Exposición Ocasional             ,Estudiante  ,Asma
+F      ,  45 ,Si   ,No                      ,Si          ,Si                  ,Si          ,Fuma    ,Exposición Crónica               ,Comerciante ,Neumonía
+M      ,  40 ,No   ,No                      ,No          ,No                  ,No          ,No      ,No                               ,Empleado    ,No
+F      ,  60 ,Si   ,No                      ,No          ,Si                  ,No          ,No      ,Exposición Crónica               ,Comerciante ,Asma
+M      ,  25 ,No   ,No                      ,No          ,No                  ,No          ,No      ,No                               ,Estudiante  ,No

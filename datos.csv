@@ -1,0 +1,91 @@
+genero,edad,fuma,antecedentes_familiares,tos_cronica,dificultad_respirar,sibilancias,habitos,exposicion_sustancias_irritantes,ocupacion,otros_diagnosticos,enfermedad_posible
+M,45,Si,No,Si,Si,No,Fumador,No,Oficinista,Asma,Asma
+F,30,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,60,Si,Si,No,Si,No,Fumador,No,Trabajador de la construcción,No,Neumonía
+F,28,No,No,Si,No,No,No,No,Enfermera,No,Sin enfermedad
+M,52,No,No,Si,No,No,No,No,Profesor,No,Sin enfermedad
+F,35,Si,Si,No,Si,No,Fumador,No,Trabajador de la construcción,No,Asma
+M,45,Si,No,Si,Si,No,Fumador,No,Oficinista,Asma,Asma
+F,30,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,60,Si,Si,No,Si,No,Fumador,No,Trabajador de la construcción,No,Neumonía
+F,28,No,No,Si,No,No,No,No,Enfermera,No,Sin enfermedad
+M,52,No,No,Si,No,No,No,No,Profesor,No,Sin enfermedad
+F,35,Si,Si,No,Si,No,Fumador,No,Trabajador de la construcción,No,Asma
+M,47,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,29,No,Si,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,61,No,Si,Si,No,No,Fumador,No,Conductor de camiones,No,Neumonía
+F,27,No,No,No,No,No,No,No,Cocinera,No,Sin enfermedad
+M,55,Si,Si,No,Si,No,Fumador,No,Albañil,No,Asma
+F,32,No,No,No,No,No,No,No,Profesora,No,Sin enfermedad
+M,50,No,No,Si,No,No,No,No,Oficinista,No,Sin enfermedad
+F,34,No,No,Si,No,No,No,No,Estudiante,No,Sin enfermedad
+M,48,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,40,No,No,Si,No,No,No,No,Cajera,No,Asma
+M,46,Si,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,31,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,56,No,No,No,No,No,No,No,Profesor,No,Sin enfermedad
+F,36,No,No,No,No,No,No,No,Recepcionista,No,Sin enfermedad
+M,58,No,No,No,No,No,No,No,Electricista,No,Asma
+F,33,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,53,No,No,No,No,No,No,No,Mecánico,No,Sin enfermedad
+F,37,No,No,No,No,No,No,No,Enfermera,No,Sin enfermedad
+M,49,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,41,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,51,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,38,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,57,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,42,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,44,Si,No,No,No,No,No,No,Conductor de camiones,No,Asma
+F,26,No,No,No,No,No,No,No,Cocinera,No,Sin enfermedad
+M,54,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,39,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,59,No,No,No,No,No,No,No,Profesor,No,Sin enfermedad
+F,43,No,No,No,No,No,No,No,Electricista,No,Sin enfermedad
+M,37,Si,No,No,No,No,No,No,Oficinista,No,Asma
+F,28,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,47,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,30,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,45,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,35,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,50,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,33,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,52,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,38,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,55,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,40,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,49,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,42,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,54,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,41,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,36,Si,No,No,No,No,No,No,Oficinista,No,Asma
+F,28,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,48,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,31,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,46,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,37,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,47,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,29,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,43,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,32,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,52,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,35,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,50,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,39,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,57,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,42,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,46,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,31,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,48,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,33,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,55,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,40,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,56,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,36,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,58,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,43,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,54,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,37,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
+M,47,No,No,No,No,No,No,No,Oficinista,No,Sin enfermedad
+F,29,No,No,No,No,No,No,No,Estudiante,No,Sin enfermedad
+M,45,No,No,No,No,No,No,No,Conductor de camiones,No,Sin enfermedad
+F,28,No,No,No,No,No,No,No,Cajera,No,Sin enfermedad
