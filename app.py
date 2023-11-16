@@ -179,7 +179,7 @@ def get_detalle_paciente(paciente_id):
                 paciente_info = {
                     "id": paciente['idpaciente'],
                     "nombre": paciente['nombres'],
-                    "celular": paciente['celular'],
+                    "celular": paciente['telefono'],
                     "apellidoM": paciente['apellidom'],
                     "sexo": paciente['sexo'],
                     "historiales_clinicos": historiales_clinicos
@@ -228,6 +228,72 @@ def registrar_consulta():
     return 'Consulta registrada con éxito'
 
 
+# Ruta para registrar un usuario
+@app.route('/register_paciente', methods=['POST'])
+def register_paciente():
+    data = request.json
+    fechanac = data.get('fechanac')
+    telefono = data.get('telefono')
+    nombres = data.get('nombres')
+    apellidop = data.get('apellidop')
+    apellidom = data.get('apellidom')
+    sexo = data.get('sexo')
+    ci = data.get('ci')
+    domicilio = data.get('domicilio')
+    estado = data.get('estado')
+    fechanacimiento = datetime.strptime(fechanac, "%Y-%m-%d")
+    fechaactual = datetime.now()
+    diferencia = fechaactual - fechanacimiento
+    edad = diferencia.days // 365
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO paciente (fechanac, edad, telefono, nombres, apellidop, apellidom, sexo, ci, domicilio, fecha_registro, estado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', 
+                           ( fechanac , edad, telefono, nombres, apellidop, apellidom, sexo, ci, domicilio, fechaactual, estado))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+
+@app.route('/data/session', methods=['POST'])
+def getidsession():
+    data = request.json
+    estado = data.get('estado')
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT idpaciente FROM paciente where estado = %s", (estado,))
+            paciente_id = cursor.fetchone()
+            if paciente_id:
+                return jsonify({'message': 'positivo', 'paciente': paciente_id['idpaciente']}), print('ya esta')
+            else:
+                return jsonify({'message': 'negativo'}), print('no esta')
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/register_antecedentes', methods=['POST'])
+def register_antecedentes():
+    data = request.json
+    paciente = data.get('paciente')
+    estudios = data.get('estudios')
+    estado_civil = data.get('estado_civil')
+    ocupacion = data.get('ocupacion')
+    origen = data.get('origen')
+    sanamiento = data.get('sanamiento')
+    alimentacion = data.get('alimentacion')
+    habitos = data.get('habitos')
+
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO antecedentes (idpaciente, estudios, estado_civil, ocupacion, origen, sanamiento, alimentacion, habitos) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)', 
+                           (paciente, estudios, estado_civil, ocupacion, origen, sanamiento, alimentacion, habitos))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+    
 if __name__ == '__main__':
     app.run(debug=True)
     
