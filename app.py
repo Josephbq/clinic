@@ -109,7 +109,7 @@ def login():
                     if (doctor_schedule and role == 2) or role == 1:
                         if role == 1:
                             session['user_id'] = user['idDoctor']
-                            return jsonify({'message': 'Adm Log', 'username': user['nombres'], 'session_id': session.sid, 'role': role})
+                            return jsonify({'message': 'Adm Log', 'username': user['nombres'], 'session_id': session.sid, 'idd': user['idDoctor'], 'role': role})
                         else:
                             start_time = (datetime.min + doctor_schedule['horae']).time()
                             end_time = (datetime.min + doctor_schedule['horas']).time()
@@ -119,7 +119,7 @@ def login():
                                                (user['idDoctor'], login_time, 'exitoso'))
                                 session['user_id'] = user['idDoctor']
                                 db.commit()
-                                return jsonify({'message': 'Login successful', 'username': user['nombres'], 'session_id': session.sid, 'role': role })
+                                return jsonify({'message': 'Login successful', 'username': user['nombres'], 'session_id': session.sid, 'id': user['idDoctor'], 'role': role })
                             else:
                                 cursor.execute('INSERT INTO registro_login (iddoctor, hora_inicio, estado) VALUES (%s, %s, %s)',
                                                (user['idDoctor'], login_time, 'fuera de horario'))
@@ -190,43 +190,6 @@ def get_detalle_paciente(paciente_id):
                 return jsonify({'message': 'Paciente no encontrado'})
     except Exception as e:
         return jsonify({'error': str(e)})
-    
-@app.route('/registrar_consulta', methods=['POST'])
-def registrar_consulta():
-    genero = request.form.get('genero')
-    edad = request.form.get('edad')
-    fuma = request.form.get('fuma')
-    antecedentes_familiares = request.form.get('antecedentes_familiares')
-    tos_cronica = request.form.get('tos_cronica')
-    dificultad_respirar = request.form.get('dificultad_respirar')
-    sibilancias = request.form.get('sibilancias')
-    habitos = request.form.get('habitos')
-    exposicion_sustancias_irritantes = request.form.get('exposicion_sustancias_irritantes')
-    ocupacion = request.form.get('ocupacion')
-    otros_diagnosticos = request.form.get('otros_diagnosticos')
-
-
-    nuevos_datos = pd.DataFrame({
-        'genero': [genero],
-        'edad': [edad],
-        'fuma': [fuma],
-        'antecedentes_familiares': [antecedentes_familiares],
-        'tos_cronica': [tos_cronica],
-        'dificultad_respirar': [dificultad_respirar],
-        'sibilancias': [sibilancias],
-        'habitos': [habitos],
-        'exposicion_sustancias_irritantes': [exposicion_sustancias_irritantes],
-        'ocupacion': [ocupacion],
-        'otros_diagnosticos': [otros_diagnosticos],
-    })
-
-    open('nuevos.csv', 'w').close()
-    nuevos_datos.to_csv('nuevos.csv', index=False, header=True, mode='a')
-    datos_entrenamiento = pd.DataFrame([nuevos_datos])
-    datos_entrenamiento.to_csv("datos.csv", mode="a", header=False, index=False)
-
-    return 'Consulta registrada con éxito'
-
 
 # Ruta para registrar un usuario
 @app.route('/register_paciente', methods=['POST'])
@@ -262,10 +225,10 @@ def getidsession():
     estado = data.get('estado')
     try:
         with db.cursor() as cursor:
-            cursor.execute("SELECT idpaciente FROM paciente where estado = %s", (estado,))
+            cursor.execute("SELECT idpaciente,fechanac FROM paciente where estado = %s", (estado,))
             paciente_id = cursor.fetchone()
             if paciente_id:
-                return jsonify({'message': 'positivo', 'paciente': paciente_id['idpaciente']}), print('ya esta')
+                return jsonify({'message': 'positivo', 'paciente': paciente_id['idpaciente'], 'fechanac': paciente_id['fechanac']}), print('ya esta')
             else:
                 return jsonify({'message': 'negativo'}), print('no esta')
     except Exception as e:
@@ -287,6 +250,92 @@ def register_antecedentes():
         with db.cursor() as cursor:
             cursor.execute('INSERT INTO antecedentes (idpaciente, estudios, estado_civil, ocupacion, origen, sanamiento, alimentacion, habitos) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)', 
                            (paciente, estudios, estado_civil, ocupacion, origen, sanamiento, alimentacion, habitos))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+    
+@app.route('/register_patologias', methods=['POST'])
+def register_patologias():
+    data = request.json
+    paciente = data.get('paciente')
+    patologia = data.get('patologia')
+    familiar = data.get('familiar')
+    detalles = data.get('detalles')
+    resumen = data.get('resumen')
+
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO antecedentespatologicos (idpaciente, patologia_familiar, patologia_familiar_parentesco, detalles, resumen) VALUES (%s, %s, %s, %s, %s)', 
+                           (paciente, patologia, familiar, detalles, resumen))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+    
+@app.route('/register_exafisi', methods=['POST'])
+def register_hc():
+    data = request.json
+    paciente = data.get('paciente')
+    fechanac = data.get('fechanac')
+    talla = data.get('talla')
+    peso = data.get('peso')
+    presiona = data.get('presiona')
+    frecuenciac = data.get('frecuenciac')
+    frecuenciar = data.get('frecuenciar')
+    temperatura = data.get('temperatura')
+    saturacion = data.get('saturacion')
+    otras = data.get('otras')
+    estado = data.get('estado')
+    fechanacimiento = datetime.strptime(fechanac, "%Y-%m-%d")
+    fechaactual = datetime.now()
+    diferencia = fechaactual - fechanacimiento
+    edad = diferencia.days // 365
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO historiaclinica (idpaciente, fecha, edad, talla, peso, frecuenciac, frecuenciar, presiona, saturacion, temperatura, otros, estado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', 
+                           (paciente, fechaactual, edad, talla, peso, frecuenciac, frecuenciar, presiona, saturacion, temperatura, otras, estado))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+
+@app.route('/data/gethc', methods=['POST'])
+def getidhc():
+    data = request.json
+    estado = data.get('estado')
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT idHC FROM historiaclinica where estado = %s", (estado,))
+            historia_id = cursor.fetchone()
+            if historia_id:
+                return jsonify({'message': 'positivo', 'hcid': historia_id['idHC']}), print('ya esta')
+            else:
+                return jsonify({'message': 'negativo'}), print('no esta')
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/register_consulta', methods=['POST'])
+def regiser_consulta():
+    data = request.json
+    hc = data.get('hc')
+    iddoctor = data.get('iddoctor')
+    tos = data.get('tos')
+    respiracion = data.get('respiracion')
+    sibilancias = data.get('sibilancias')
+    exposicion = data.get('exposicion')
+    fisica = data.get('fisica')
+    otras_enfer = data.get('otras_enfer')
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO consulta (idHC, iddoctor, tos_cronica, dificultad_respirar, sibilancias, exposicion_sustancias, nivel_actividad_fisica, enfermedades_respiratorias) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)', 
+                           (hc, iddoctor, tos, respiracion, sibilancias, exposicion, fisica, otras_enfer))
             db.commit()
 
             return jsonify({'message': 'Register successful'})
