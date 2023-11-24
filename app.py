@@ -5,6 +5,11 @@ import pandas as pd
 import pymysql.cursors
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, classification_report
 
 
 app = Flask(__name__)
@@ -21,6 +26,7 @@ db = pymysql.connect(
     charset='utf8mb4',
     cursorclass=pymysql.cursors.DictCursor
 )
+
 # Ruta para registrar un usuario
 @app.route('/register', methods=['POST'])
 def register():
@@ -297,7 +303,7 @@ def register_hc():
     edad = diferencia.days // 365
     try:
         with db.cursor() as cursor:
-            cursor.execute('INSERT INTO historiaclinica (idpaciente, fecha, edad, talla, peso, frecuenciac, frecuenciar, presiona, saturacion, temperatura, otros, estado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', 
+            cursor.execute('INSERT INTO historiaclinica (idpaciente, fecha, edadh, talla, peso, frecuenciac, frecuenciar, presiona, saturacion, temperatura, otros, estado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', 
                            (paciente, fechaactual, edad, talla, peso, frecuenciac, frecuenciar, presiona, saturacion, temperatura, otras, estado))
             db.commit()
 
@@ -342,7 +348,101 @@ def regiser_consulta():
 
     except Exception as e:
         return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+
+# Función para preparar los datos del paciente para el modelo
+def preparar_datos_paciente(paciente):
+    datos_paciente = {
+        "genero": paciente['sexo'],
+        "edad": paciente['edadh'],
+        "talla": paciente['talla'],
+        "peso": paciente['peso'],
+        "antecedentes_familiares": paciente['patologia_familiar'],
+        "tos_cronica": paciente['tos_cronica'],
+        "dificultad_respirar": paciente['dificultad_respirar'],
+        "sibilancias": paciente['sibilancias'],
+        "habitos": paciente['habitos'],
+        "exposicion_sustancias_irritantes": paciente['exposicion_sustancias'],
+        "ocupacion": paciente['ocupacion'],
+        "otros_diagnosticos": paciente['enfermedades_respiratorias'],
+        "nivel_actividad_fisica": paciente['nivel_actividad_fisica'],
+        "enfermedad_posible": paciente['enfermedad_posible'],
+    }
+    datos_paciente_df = pd.DataFrame([datos_paciente])
+    return datos_paciente_df
+
+# Función para preparar los datos del paciente para el modelo
+def preparar_nuevos_datos_paciente(pacientenuevo):
+    datos_nuevo_paciente = {
+        "genero": pacientenuevo['sexo'],
+        "edad": pacientenuevo['edadh'],
+        "talla": pacientenuevo['talla'],
+        "peso": pacientenuevo['peso'],
+        "antecedentes_familiares": pacientenuevo['patologia_familiar'],
+        "tos_cronica": pacientenuevo['tos_cronica'],
+        "dificultad_respirar": pacientenuevo['dificultad_respirar'],
+        "sibilancias": pacientenuevo['sibilancias'],
+        "habitos": pacientenuevo['habitos'],
+        "exposicion_sustancias_irritantes": pacientenuevo['exposicion_sustancias'],
+        "ocupacion": pacientenuevo['ocupacion'],
+        "otros_diagnosticos": pacientenuevo['enfermedades_respiratorias'],
+        "nivel_actividad_fisica": pacientenuevo['nivel_actividad_fisica'],
+    }
+    datos_nuevo_paciente_df = pd.DataFrame([datos_nuevo_paciente])
+    return datos_nuevo_paciente_df
+
+@app.route('/ml/<string:sessionid>')
+def register_ml(sessionid):
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""SELECT paciente.*, antecedentes.*, antecedentespatologicos.*, consulta.*, historiaclinica.*, diagnosticos.* FROM paciente 
+                           LEFT JOIN antecedentes ON paciente.idpaciente = antecedentes.idpaciente 
+                           LEFT JOIN antecedentespatologicos ON paciente.idpaciente = antecedentespatologicos.idpaciente 
+                           LEFT JOIN historiaclinica ON paciente.idpaciente = historiaclinica.idpaciente
+                           LEFT JOIN consulta ON historiaclinica.idHC = consulta.idHC
+                           LEFT JOIN diagnosticos ON consulta.idconsulta = diagnosticos.idconsulta
+                           WHERE paciente.estado = 'entrenamiento' """)
+            paciente = cursor.fetchone()
+
+            cursor.execute("""SELECT paciente.*, antecedentes.*, antecedentespatologicos.*, consulta.*, historiaclinica.* FROM paciente 
+                           LEFT JOIN antecedentes ON paciente.idpaciente = antecedentes.idpaciente 
+                           LEFT JOIN antecedentespatologicos ON paciente.idpaciente = antecedentespatologicos.idpaciente 
+                           LEFT JOIN historiaclinica ON paciente.idpaciente = historiaclinica.idpaciente
+                           LEFT JOIN consulta ON historiaclinica.idHC = consulta.idHC
+                           WHERE paciente.estado = %s""", (sessionid,))
+            pacientenuevo = cursor.fetchone()
+
+            if paciente:
+                datos_iniciales = preparar_datos_paciente(paciente)
+                label_encoder = LabelEncoder()
+                for col in datos_iniciales.columns:
+                    if datos_iniciales[col].dtype == 'object':
+                        datos_iniciales[col] = label_encoder.fit_transform(datos_iniciales[col])
+
+                # Crear y entrenar el modelo solo si es la primera vez
+                if 'modelo' not in locals():
+                    X = datos_iniciales.drop(columns=['enfermedad_posible'])
+                    y = datos_iniciales['enfermedad_posible']
+                    modelo = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+                    modelo.fit(X, y)
+
+                nuevos_datos = preparar_nuevos_datos_paciente(pacientenuevo)
+                # Aplicar la misma codificación a las columnas categóricas en los nuevos datos
+                for col in nuevos_datos.columns:
+                    if nuevos_datos[col].dtype == 'object':
+                        nuevos_datos[col] = label_encoder.fit_transform(nuevos_datos[col])
+
+                # Hacer predicciones con los nuevos datos
+                predicciones = modelo.predict(nuevos_datos)
+
+                print(predicciones)
+                return jsonify(predicciones)
+            else:
+                return jsonify({'message': 'Paciente no encontrado'})
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': str(e)})
     
+
 if __name__ == '__main__':
     app.run(debug=True)
     
