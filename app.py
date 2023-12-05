@@ -326,6 +326,21 @@ def getidhc():
                 return jsonify({'message': 'negativo'}), print('no esta')
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+@app.route('/data/getcon', methods=['POST'])
+def getidcon():
+    data = request.json
+    estado = data.get('estado')
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT idconsulta FROM consulta where idHC = %s", (estado,))
+            consulta_id = cursor.fetchone()
+            if consulta_id:
+                return jsonify({'message': 'positivo', 'idconsulta': consulta_id['idconsulta']}), print('ya esta')
+            else:
+                return jsonify({'message': 'negativo'}), print('no esta')
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @app.route('/register_consulta', methods=['POST'])
 def regiser_consulta():
@@ -349,26 +364,49 @@ def regiser_consulta():
     except Exception as e:
         return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
 
+
+@app.route('/register_diagnostico', methods=['POST'])
+def register_diagnostico():
+    data = request.json
+    idconsulta = data.get('idconsulta')
+    enfermedad_posible = data.get('enfermedad_posible')
+    enfermedad_doctor = data.get('enfermedad_doctor')
+    tratamiento = data.get('tratamiento')
+    try:
+        with db.cursor() as cursor:
+            cursor.execute('INSERT INTO diagnosticos (idconsulta, enfermedad_posible, enfermedad_doctor, tratamiento) VALUES (%s, %s, %s, %s)', 
+                           (idconsulta, enfermedad_posible, enfermedad_doctor, tratamiento))
+            db.commit()
+
+            return jsonify({'message': 'Register successful'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al registrar el usuario', 'error': str(e)}), print(e) # Internal Server Error
+
 # Función para preparar los datos del paciente para el modelo
-def preparar_datos_paciente(paciente):
-    datos_paciente = {
-        "genero": paciente['sexo'],
-        "edad": paciente['edadh'],
-        "talla": paciente['talla'],
-        "peso": paciente['peso'],
-        "antecedentes_familiares": paciente['patologia_familiar'],
-        "tos_cronica": paciente['tos_cronica'],
-        "dificultad_respirar": paciente['dificultad_respirar'],
-        "sibilancias": paciente['sibilancias'],
-        "habitos": paciente['habitos'],
-        "exposicion_sustancias_irritantes": paciente['exposicion_sustancias'],
-        "ocupacion": paciente['ocupacion'],
-        "otros_diagnosticos": paciente['enfermedades_respiratorias'],
-        "nivel_actividad_fisica": paciente['nivel_actividad_fisica'],
-        "enfermedad_posible": paciente['enfermedad_posible'],
-    }
-    datos_paciente_df = pd.DataFrame([datos_paciente])
-    return datos_paciente_df
+def preparar_datos_paciente(pacientes):
+    datos_pacientes = []
+    for paciente in pacientes:
+        datos_paciente = {
+            "genero": paciente['sexo'],
+            "edad": paciente['edadh'],
+            "talla": paciente['talla'],
+            "peso": paciente['peso'],
+            "antecedentes_familiares": paciente['patologia_familiar'],
+            "tos_cronica": paciente['tos_cronica'],
+            "dificultad_respirar": paciente['dificultad_respirar'],
+            "sibilancias": paciente['sibilancias'],
+            "habitos": paciente['habitos'],
+            "exposicion_sustancias_irritantes": paciente['exposicion_sustancias'],
+            "ocupacion": paciente['ocupacion'],
+            "otros_diagnosticos": paciente['enfermedades_respiratorias'],
+            "nivel_actividad_fisica": paciente['nivel_actividad_fisica'],
+            "enfermedad_posible": paciente['enfermedad_posible'],
+        }
+        datos_pacientes.append(datos_paciente)
+
+    datos_pacientes_df = pd.DataFrame(datos_pacientes)
+    return datos_pacientes_df
 
 # Función para preparar los datos del paciente para el modelo
 def preparar_nuevos_datos_paciente(pacientenuevo):
@@ -394,15 +432,6 @@ def preparar_nuevos_datos_paciente(pacientenuevo):
 def register_ml(sessionid):
     try:
         with db.cursor() as cursor:
-            cursor.execute("""SELECT paciente.*, antecedentes.*, antecedentespatologicos.*, consulta.*, historiaclinica.*, diagnosticos.* FROM paciente 
-                           LEFT JOIN antecedentes ON paciente.idpaciente = antecedentes.idpaciente 
-                           LEFT JOIN antecedentespatologicos ON paciente.idpaciente = antecedentespatologicos.idpaciente 
-                           LEFT JOIN historiaclinica ON paciente.idpaciente = historiaclinica.idpaciente
-                           LEFT JOIN consulta ON historiaclinica.idHC = consulta.idHC
-                           LEFT JOIN diagnosticos ON consulta.idconsulta = diagnosticos.idconsulta
-                           WHERE paciente.estado = 'entrenamiento' """)
-            paciente = cursor.fetchone()
-
             cursor.execute("""SELECT paciente.*, antecedentes.*, antecedentespatologicos.*, consulta.*, historiaclinica.* FROM paciente 
                            LEFT JOIN antecedentes ON paciente.idpaciente = antecedentes.idpaciente 
                            LEFT JOIN antecedentespatologicos ON paciente.idpaciente = antecedentespatologicos.idpaciente 
@@ -411,37 +440,129 @@ def register_ml(sessionid):
                            WHERE paciente.estado = %s""", (sessionid,))
             pacientenuevo = cursor.fetchone()
 
-            if paciente:
-                datos_iniciales = preparar_datos_paciente(paciente)
+            if pacientenuevo:
+                data = pd.read_csv('datos.csv')
                 label_encoder = LabelEncoder()
-                for col in datos_iniciales.columns:
-                    if datos_iniciales[col].dtype == 'object':
-                        datos_iniciales[col] = label_encoder.fit_transform(datos_iniciales[col])
+                data['genero'] = label_encoder.fit_transform(data['genero'])
+                data['antecedentes_familiares'] = label_encoder.fit_transform(data['antecedentes_familiares'])
+                data['tos_cronica'] = label_encoder.fit_transform(data['tos_cronica'])
+                data['dificultad_respirar'] = label_encoder.fit_transform(data['dificultad_respirar'])
+                data['sibilancias'] = label_encoder.fit_transform(data['sibilancias'])
+                data['habitos'] = label_encoder.fit_transform(data['habitos'])
+                data['exposicion_sustancias_irritantes'] = label_encoder.fit_transform(data['exposicion_sustancias_irritantes'])
+                data['ocupacion'] = label_encoder.fit_transform(data['ocupacion'])
+                data['otros_diagnosticos'] = label_encoder.fit_transform(data['otros_diagnosticos'])
+                data['nivel_actividad_fisica'] = label_encoder.fit_transform(data['nivel_actividad_fisica'])
+                data['enfermedad_posible'] = label_encoder.fit_transform(data['enfermedad_posible'])
+                X = data.drop(columns=['enfermedad_posible'])
+                y = data['enfermedad_posible']
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                print(data)
+                model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+                model.fit(X_train, y_train)
 
-                # Crear y entrenar el modelo solo si es la primera vez
-                if 'modelo' not in locals():
-                    X = datos_iniciales.drop(columns=['enfermedad_posible'])
-                    y = datos_iniciales['enfermedad_posible']
-                    modelo = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
-                    modelo.fit(X, y)
+                y_pred = model.predict(X_test)
+
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f'Precisión: {accuracy}')
 
                 nuevos_datos = preparar_nuevos_datos_paciente(pacientenuevo)
-                # Aplicar la misma codificación a las columnas categóricas en los nuevos datos
+
                 for col in nuevos_datos.columns:
                     if nuevos_datos[col].dtype == 'object':
                         nuevos_datos[col] = label_encoder.fit_transform(nuevos_datos[col])
 
-                # Hacer predicciones con los nuevos datos
-                predicciones = modelo.predict(nuevos_datos)
+                predicciones = model.predict(nuevos_datos)
+                
+                prediccion_mapeada = None
 
-                print(predicciones)
-                return jsonify(predicciones)
+                mapeo = {
+                    0: "NADA",
+                    1: "ALGO",
+                    2: "OTRA COSA"
+                }
+                # Verificar si la predicción está en el mapeo
+                if predicciones[0] in mapeo:
+                    prediccion_mapeada = mapeo[predicciones[0]]
+                else:
+                    prediccion_mapeada = "Valor no manejado"
+                print('predicciones: ',predicciones)
+                print('prediccione_mapeada:', prediccion_mapeada)
+                return jsonify({'asd': prediccion_mapeada})
             else:
                 return jsonify({'message': 'Paciente no encontrado'})
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)})
     
+@app.route('/getdoctor/<int:userid>')
+def get_doctor(userid):
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT * FROM doctor WHERE idDoctor=%s", (userid,))
+            doctor = cursor.fetchone()
+
+            if doctor:
+            
+                doctor_info = {
+                    "nombre": doctor['nombres'],
+                    "apellidoP": doctor['apellidop'],
+                    "apellidoM": doctor['apellidom'],
+                    "ci": doctor['ci'],
+                    "area": doctor['area'],
+                    "correo": doctor['correo'],
+                }
+
+                return jsonify(doctor_info)
+            else:
+                return jsonify({'message': 'Paciente no encontrado'})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+
+# Ruta para registrar un usuario
+
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    data = request.json
+    iddoctor = data.get('iddoctor')
+    newpass = data.get('newpass')
+
+    try:
+        with db.cursor() as cursor:
+
+            cursor.execute('SELECT password FROM doctor WHERE iddoctor = %s', (iddoctor,))
+            existing_password_hash = cursor.fetchone()
+
+            if existing_password_hash:
+                hashed_password = generate_password_hash(newpass, method='scrypt')
+
+                cursor.execute('UPDATE doctor SET password = %s WHERE iddoctor = %s', (hashed_password, iddoctor))
+                db.commit()
+
+                return jsonify({'message': 'positivo'})
+            else:
+                return jsonify({'message': 'negativo'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al cambiar la contraseña', 'error': str(e)}), print(e)
+    
+@app.route('/change_estado', methods=['POST'])
+def change_estado():
+    data = request.json
+    estado = data.get('estado')
+
+    try:
+        with db.cursor() as cursor:
+            db.begin()
+            cursor.execute('UPDATE paciente SET estado = "entrenamiento" WHERE estado = %s', (estado,))
+            cursor.execute('UPDATE historiaclinica SET estado = "" WHERE estado = %s', (estado,))
+        db.commit()
+
+        return jsonify({'message': 'positivo'})
+
+    except Exception as e:
+        return jsonify({'message': 'Ocurrió un error al cambiar la contraseña', 'error': str(e)}), print(e)
 
 if __name__ == '__main__':
     app.run(debug=True)
